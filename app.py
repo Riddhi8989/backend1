@@ -8,6 +8,10 @@ from models.failcourse import FailCourse
 from models.careerpath import CareerPath
 from models.question import Question
 from models.answer import Answer
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+from peewee import SqliteDatabase, Model, CharField
 from playhouse.shortcuts import model_to_dict
 from flask_cors import cross_origin
 import openai
@@ -46,37 +50,6 @@ def home():
 
 
 # ---------- Auth ----------
-@app.route('/register', methods=['POST'])
-def register():
-    try:
-        data = request.get_json()
-        if not all(k in data for k in ('name', 'email', 'password')):
-            return jsonify({"error": "Missing required fields"}), 400
-
-        if User.select().where(User.email == data['email']).exists():
-            return jsonify({"error": "Email already registered"}), 400
-
-        user = User.create_user(data)
-        return jsonify({"message": "User created successfully", "user": user.to_dict()}), 201
-
-    except Exception as e:
-        print("Error in /register:", e)
-        return jsonify({"error": "Registration failed", "details": str(e)}), 500
-
-
-@app.route('/login', methods=['POST'])
-def login():
-    try:
-        data = request.get_json()
-        user = User.authenticate(data['email'], data['password'])
-        if not user:
-            return jsonify({"error": "Invalid credentials"}), 401
-
-        return jsonify({"message": "Login successful", "user": user.to_dict()}), 200
-
-    except Exception as e:
-        print("Error in /login:", e)
-        return jsonify({"error": "Login failed", "details": str(e)}), 500
 
 
 # ---------- AI Quote ----------
@@ -116,24 +89,77 @@ def ai_guidance():
     result = get_ai_guidance(text)
     return jsonify({'result': result})
 
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from werkzeug.security import generate_password_hash, check_password_hash
+from peewee import SqliteDatabase, Model, CharField
 
-# ---------- Profile ----------
-@app.route('/me', methods=['GET'])
-def get_me():
-    try:
-        email = request.args.get('email')
-        if not email:
-            return jsonify({"error": "Email is required"}), 400
+class User(Model):
+    name = CharField()
+    email = CharField(unique=True)
+    password = CharField()  # Hashed password
 
-        user = User.get_or_none(User.email == email)
-        if not user:
-            return jsonify({"error": "User not found"}), 404
+    class Meta:
+        database = db
 
-        return jsonify({"user": user.to_dict()}), 200
+# Connect and create table
+db.connect()
+db.create_tables([User], safe=True)
 
-    except Exception as e:
-        print("Error in /me:", e)
-        return jsonify({"error": "Failed to fetch user", "details": str(e)}), 500
+# === Flask App Setup ===
+
+# 🔹 Register
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+
+    if not name or not email or not password:
+        return jsonify({'message': 'All fields are required'}), 400
+
+    if User.get_or_none(User.email == email):
+        return jsonify({'message': 'Email already registered'}), 400
+
+    hashed_password = generate_password_hash(password)
+    User.create(name=name, email=email, password=hashed_password)
+    return jsonify({'message': 'User registered successfully'}), 201
+
+# 🔹 Login
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get('email')
+    password = data.get('password')
+
+    user = User.get_or_none(User.email == email)
+    if user and check_password_hash(user.password, password):
+        return jsonify({
+            'token': 'mocktoken123',  # Placeholder for future JWT
+            'email': user.email,
+            'name': user.name
+        }), 200
+
+    return jsonify({'message': 'Invalid credentials'}), 401
+
+# 🔹 Profile fetch by email
+@app.route('/me')
+def get_profile():
+    email = request.args.get('email')
+    user = User.get_or_none(User.email == email)
+    if user:
+        return jsonify({
+            'email': user.email,
+            'name': user.name
+        }), 200
+
+    return jsonify({'message': 'User not found'}), 404
+
+# === Run App ===
+if __name__ == '__main__':
+    app.run(debug=True)
+
 
 
 @app.route('/update-career', methods=['POST'])
