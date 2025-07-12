@@ -82,17 +82,6 @@ def register():
 
     return jsonify({'user': user.to_dict()}), 200
 
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    user = User.authenticate(data.get('email'), data.get('password'))
-    if user:
-        return jsonify({
-            'message': 'Login successful',
-            'user': user.to_dict()  # ⬅️ frontend expects this
-        }), 200
-
-    return jsonify({'error': 'Invalid credentials'}), 401  # ⬅️ consistent with frontend error key
 
 @app.route('/me')
 def get_profile_by_email():
@@ -171,16 +160,6 @@ def update_career():
     
 
 
-@app.route('/ai-guide', methods=['POST'])
-def ai_guide():
-    data = request.get_json()
-    prompt = data.get('prompt')
-
-    if not prompt:
-        return jsonify({'error': 'Prompt is required'}), 400
-
-    answer = get_ai_guidance(prompt)
-    return jsonify({'answer': answer})
 
 # ---------- Fail Stories ----------
 @app.route('/stories', methods=['GET'])
@@ -223,6 +202,17 @@ def get_career_paths():
     except Exception as e:
         print("Error in /career-paths:", e)
         return jsonify({"error": "Failed to fetch career paths", "details": str(e)}), 500
+    
+@app.route('/ai-guide', methods=['POST'])
+def ai_guide_post():
+    data = request.get_json()
+    prompt = data.get('prompt') or data.get('text')
+
+    if not prompt:
+        return jsonify({'error': 'Prompt is required'}), 400
+
+    result = get_ai_guidance(prompt, expect_json=False)
+    return jsonify({'answer': result})
 
 
 @app.route('/career-details', methods=['POST'])
