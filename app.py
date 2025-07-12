@@ -85,12 +85,16 @@ def login():
     return jsonify({'message': 'Invalid credentials'}), 401
 
 @app.route('/me')
-def profile():
+def get_profile():
     email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
+
     user = User.get_or_none(User.email == email)
-    if user:
-        return jsonify(user.to_dict()), 200
-    return jsonify({'message': 'User not found'}), 404
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    return jsonify(user.to_dict())
 
 
 # ---------- AI Quote ----------
