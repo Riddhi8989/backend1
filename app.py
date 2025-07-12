@@ -82,6 +82,10 @@ def register():
 
     return jsonify({'user': user.to_dict()}), 200
 
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+
+
 
 @app.route('/me')
 def get_profile_by_email():
@@ -181,6 +185,8 @@ def get_stories():
     except Exception as e:
         print("Error in /stories:", e)
         return jsonify({"error": "Failed to fetch stories", "details": str(e)}), 500
+    
+
 
 
 # ---------- Career ----------
@@ -207,6 +213,10 @@ def get_career_paths():
 def ai_guide_post():
     data = request.get_json()
     prompt = data.get('prompt') or data.get('text')
+    if not OPENROUTER_API_KEY:
+          print("❌ API key not loaded.")
+          return "Server misconfiguration. Try again later."
+
 
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
