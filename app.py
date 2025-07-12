@@ -61,14 +61,26 @@ def home():
 @app.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    if not data.get('name') or not data.get('email') or not data.get('password'):
-        return jsonify({'message': 'All fields are required'}), 400
 
-    if User.get_or_none(User.email == data['email']):
-        return jsonify({'message': 'Email already exists'}), 400
+    name = data.get('name')
+    email = data.get('email')
+    password = data.get('password')
+    bio = data.get('bio', '')  # Optional field with default
 
-    User.create_user(data)
-    return jsonify({'message': 'User registered successfully'}), 201
+    if not name or not email or not password:
+        return jsonify({'error': 'Missing name, email or password'}), 400
+
+    if User.get_or_none(User.email == email):
+        return jsonify({'error': 'Email already exists'}), 400
+
+    user = User.create(
+        name=name,
+        email=email,
+        password=password,
+        bio=bio
+    )
+
+    return jsonify({'user': user.to_dict()}), 200
 
 @app.route('/login', methods=['POST'])
 def login():
