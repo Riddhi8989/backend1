@@ -88,13 +88,11 @@ def login():
     user = User.authenticate(data.get('email'), data.get('password'))
     if user:
         return jsonify({
-            'token': 'mock-token',
-            'email': user.email,
-            'name': user.name,
-            'role': user.role
+            'message': 'Login successful',
+            'user': user.to_dict()  # ⬅️ frontend expects this
         }), 200
 
-    return jsonify({'message': 'Invalid credentials'}), 401
+    return jsonify({'error': 'Invalid credentials'}), 401  # ⬅️ consistent with frontend error key
 
 @app.route('/me')
 def get_profile_by_email():
