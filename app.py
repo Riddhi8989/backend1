@@ -29,27 +29,68 @@ openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["https://frontend1-eight-liart.vercel.app"])
 
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+from models.user import User
+from utils.db import db
 
+# === Flask App Init ===
+app = Flask(__name__)
+CORS(app, origins=["https://frontend1-eight-liart.vercel.app"])
 
-# ---------- Initialize DB ----------
-db.connect()
-db.create_tables([User, FailCourse, CareerPath, Question, Answer])
+# === Database Setup ===
+@app.before_request
+def before_request():
+    if db.is_closed():
+        db.connect(reuse_if_open=True)
 
-# ---------- Home ----------
+@app.teardown_request
+def teardown_request(exc):
+    if not db.is_closed():
+        db.close()
+
+# === Create Tables Once ===
+with db:
+    db.create_tables([User], safe=True)
+
+# === Routes ===
 @app.route('/')
 def home():
-    return """
-    <html>
-      <head><title>Welcome</title></head>
-      <body>
-        <h1>Welcome to FailEd API</h1>
-        <p>The API is running successfully. Use a frontend or API client to explore more.</p>
-      </body>
-    </html>
-    """
+    return '✅ Backend is live', 200
 
+@app.route('/register', methods=['POST'])
+def register():
+    data = request.get_json()
+    if not data.get('name') or not data.get('email') or not data.get('password'):
+        return jsonify({'message': 'All fields are required'}), 400
 
-# ---------- Auth ----------
+    if User.get_or_none(User.email == data['email']):
+        return jsonify({'message': 'Email already exists'}), 400
+
+    User.create_user(data)
+    return jsonify({'message': 'User registered successfully'}), 201
+
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = User.authenticate(data.get('email'), data.get('password'))
+    if user:
+        return jsonify({
+            'token': 'mock-token',
+            'email': user.email,
+            'name': user.name,
+            'role': user.role
+        }), 200
+
+    return jsonify({'message': 'Invalid credentials'}), 401
+
+@app.route('/me')
+def profile():
+    email = request.args.get('email')
+    user = User.get_or_none(User.email == email)
+    if user:
+        return jsonify(user.to_dict()), 200
+    return jsonify({'message': 'User not found'}), 404
 
 
 # ---------- AI Quote ----------
@@ -88,77 +129,6 @@ def ai_guidance():
 
     result = get_ai_guidance(text)
     return jsonify({'result': result})
-
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from werkzeug.security import generate_password_hash, check_password_hash
-from peewee import SqliteDatabase, Model, CharField
-
-class User(Model):
-    name = CharField()
-    email = CharField(unique=True)
-    password = CharField()  # Hashed password
-
-    class Meta:
-        database = db
-
-# Connect and create table
-db.connect()
-db.create_tables([User], safe=True)
-
-# === Flask App Setup ===
-
-# 🔹 Register
-@app.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    name = data.get('name')
-    email = data.get('email')
-    password = data.get('password')
-
-    if not name or not email or not password:
-        return jsonify({'message': 'All fields are required'}), 400
-
-    if User.get_or_none(User.email == email):
-        return jsonify({'message': 'Email already registered'}), 400
-
-    hashed_password = generate_password_hash(password)
-    User.create(name=name, email=email, password=hashed_password)
-    return jsonify({'message': 'User registered successfully'}), 201
-
-# 🔹 Login
-@app.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
-    user = User.get_or_none(User.email == email)
-    if user and check_password_hash(user.password, password):
-        return jsonify({
-            'token': 'mocktoken123',  # Placeholder for future JWT
-            'email': user.email,
-            'name': user.name
-        }), 200
-
-    return jsonify({'message': 'Invalid credentials'}), 401
-
-# 🔹 Profile fetch by email
-@app.route('/me')
-def get_profile():
-    email = request.args.get('email')
-    user = User.get_or_none(User.email == email)
-    if user:
-        return jsonify({
-            'email': user.email,
-            'name': user.name
-        }), 200
-
-    return jsonify({'message': 'User not found'}), 404
-
-# === Run App ===
-if __name__ == '__main__':
-    app.run(debug=True)
 
 
 
