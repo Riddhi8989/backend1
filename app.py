@@ -85,7 +85,7 @@ def login():
     return jsonify({'message': 'Invalid credentials'}), 401
 
 @app.route('/me')
-def get_profile():
+def get_profile_by_email():
     email = request.args.get('email')
     if not email:
         return jsonify({"error": "Email is required"}), 400
