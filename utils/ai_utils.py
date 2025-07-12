@@ -9,7 +9,8 @@ load_dotenv()
 # API settings
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
-OPENROUTER_MODEL = "mistralai/mistral-7b-instruct"
+OPENROUTER_MODEL = "openai/gpt-3.5-turbo"
+
 
 
 def get_ai_guidance(prompt_text, expect_json=False):
