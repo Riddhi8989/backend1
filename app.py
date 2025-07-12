@@ -23,7 +23,10 @@ openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app, origins=[
+    "http://localhost:5173",               # local SvelteKit dev server
+    "https://your-frontend.vercel.app"     # deployed frontend on Vercel
+])
 
 
 # ---------- Initialize DB ----------
