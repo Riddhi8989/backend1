@@ -171,6 +171,16 @@ def update_career():
     
 
 
+@app.route('/ai-guide', methods=['POST'])
+def ai_guide():
+    data = request.get_json()
+    prompt = data.get('prompt')
+
+    if not prompt:
+        return jsonify({'error': 'Prompt is required'}), 400
+
+    answer = get_ai_guidance(prompt)
+    return jsonify({'answer': answer})
 
 # ---------- Fail Stories ----------
 @app.route('/stories', methods=['GET'])
