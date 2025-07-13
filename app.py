@@ -56,7 +56,7 @@ def register():
     name = data.get('name')
     email = data.get('email')
     password = data.get('password')
-    bio = data.get('bio', '')  # Optional field with default
+    bio = data.get('bio', '')
 
     if not name or not email or not password:
         return jsonify({'error': 'Missing name, email or password'}), 400
@@ -64,43 +64,34 @@ def register():
     if User.get_or_none(User.email == email):
         return jsonify({'error': 'Email already exists'}), 400
 
+    hashed_password = generate_password_hash(password)
+
     user = User.create(
         name=name,
         email=email,
-        password=password,
+        password=hashed_password,
         bio=bio
     )
 
     return jsonify({'user': user.to_dict()}), 200
 
-load_dotenv()
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-
 
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    email = data.get('email')
-    password = data.get('password')
-
-    print("Attempting login for:", email, "with password:", password)
-
-    if not email or not password:
-        return jsonify({'error': 'Email and password are required'}), 400
+    email = data.get("email")
+    password = data.get("password")
 
     user = User.get_or_none(User.email == email)
     if not user:
-        print("User not found")
-        return jsonify({'error': 'Invalid email or password'}), 401
+        return jsonify({"error": "Invalid email or password"}), 401
 
-    print("User found:", user.email, "stored password:", user.password)
+    if not check_password_hash(user.password, password):
+        return jsonify({"error": "Invalid email or password"}), 401
 
-    if user.password != password:
-        print("Password mismatch")
-        return jsonify({'error': 'Invalid email or password'}), 401
+    return jsonify({"user": user.to_dict()}), 200
 
-    print("✅ Login successful")
-    return jsonify({'user': user.to_dict()}), 200
+
 
 @app.route('/me')
 def get_profile_by_email():
