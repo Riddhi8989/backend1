@@ -324,17 +324,10 @@ def get_profile():
             "id": user.id,
             "name": user.name,
             "email": user.email,
-            "bio": user.bio
+            "bio": user.bio,
+            "role": user.role
         }), 200
     return jsonify({"error": "User not found"}), 404
-
-from flask import Flask, request, jsonify
-from models.user import User  # adjust if your model is located differently
-from playhouse.shortcuts import model_to_dict
-
-from flask import Flask, request, jsonify
-from models.user import User  # or wherever your User model is
-from utils.db import db  # your Peewee db connection
 
 @app.route('/profile', methods=['PUT'])
 def update_profile():
@@ -352,16 +345,20 @@ def update_profile():
         user.bio = bio or user.bio
         user.save()
 
-        return jsonify({'message': 'Profile updated successfully', 'user': {
-            'email': user.email,
-            'name': user.name,
-            'bio': user.bio,
-            'role': user.role
-        }})
+        return jsonify({
+            'message': 'Profile updated successfully',
+            'user': {
+                'email': user.email,
+                'name': user.name,
+                'bio': user.bio,
+                'role': user.role
+            }
+        }), 200
     except User.DoesNotExist:
         return jsonify({'error': 'User not found'}), 404
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
 
 
 
