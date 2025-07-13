@@ -22,7 +22,7 @@ import re
 
 # Load environment variables
 load_dotenv()
-openai.api_key = os.getenv("OPENROUTER_API_KEY")
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 
 app = Flask(__name__)
