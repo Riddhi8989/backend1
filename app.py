@@ -361,6 +361,25 @@ def update_profile():
 
 
 
+def seed_default_user():
+    from models.user import User
+    import hashlib
+
+    email = "admin@example.com"
+    password = "admin123"
+    hashed_password = hashlib.sha256(password.encode()).hexdigest()
+
+    if not User.get_or_none(User.email == email):
+        User.create(
+            name="Admin",
+            email=email,
+            password=hashed_password,
+            role="admin",
+            bio="System administrator"
+        )
+        print("✅ Admin user created")
+    else:
+        print("ℹ️ Admin user already exists")
 
 @app.route('/user-stories', methods=['GET'])
 def get_user_stories():
@@ -501,4 +520,7 @@ ensure_admin_exists()
 
 # ---------- Run ----------
 if __name__ == '__main__':
+    db.connect()
+    db.create_tables([User], safe=True)
+    seed_default_user()
     app.run(debug=True)
