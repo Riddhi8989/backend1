@@ -80,7 +80,6 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 @app.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-
     email = data.get('email')
     password = data.get('password')
 
@@ -91,7 +90,7 @@ def login():
     if not user:
         return jsonify({'error': 'Invalid email or password'}), 401
 
-    # No hashing used, since you're storing plain passwords. (Consider hashing later)
+    # Use plain comparison since passwords aren't hashed
     if user.password != password:
         return jsonify({'error': 'Invalid email or password'}), 401
 
@@ -124,14 +123,6 @@ def ai_quote():
     except Exception as e:
         traceback.print_exc()
         return jsonify({"error": "AI quote failed", "details": str(e)}), 500
-
-
-# ---------- AI Goals (OLD - using steps) ----------
-
-
-load_dotenv()
-openai.api_key = os.getenv("OPENROUTER_API_KEY")
-openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 
 
 from flask import send_from_directory
