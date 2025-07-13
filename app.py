@@ -25,8 +25,10 @@ load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 
+
+
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://frontend1.vercel.app"]}}, supports_credentials=True)
+CORS(app, origins=["https://frontend-five-eta-29.vercel.app"])  # Add your frontend domain here
 
 
 
