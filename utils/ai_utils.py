@@ -11,9 +11,11 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions"
 OPENROUTER_MODEL = "openai/gpt-3.5-turbo"
 
-
-
 def get_ai_guidance(prompt_text, expect_json=False):
+    if not OPENROUTER_API_KEY:
+        print("❌ OPENROUTER_API_KEY not found in environment.")
+        return [] if expect_json else "AI service unavailable. API key missing."
+
     try:
         headers = {
             "Authorization": f"Bearer {OPENROUTER_API_KEY}",

@@ -26,7 +26,8 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 
 app = Flask(__name__)
-CORS(app, supports_credentials=True, origins=["https://frontend1-eight-liart.vercel.app"])
+CORS(app, resources={r"/*": {"origins": "https://frontend1-eight-liart.vercel.app"}}, supports_credentials=True)
+
 
 # === Database Setup ===
 @app.before_request
@@ -210,10 +211,6 @@ def get_career_paths():
 def ai_guide_post():
     data = request.get_json()
     prompt = data.get('prompt') or data.get('text')
-    if not OPENROUTER_API_KEY:
-          print("❌ API key not loaded.")
-          return "Server misconfiguration. Try again later."
-
 
     if not prompt:
         return jsonify({'error': 'Prompt is required'}), 400
