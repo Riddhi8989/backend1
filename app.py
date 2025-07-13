@@ -77,6 +77,25 @@ load_dotenv()
 OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+
+    email = data.get('email')
+    password = data.get('password')
+
+    if not email or not password:
+        return jsonify({'error': 'Email and password are required'}), 400
+
+    user = User.get_or_none(User.email == email)
+    if not user:
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+    # No hashing used, since you're storing plain passwords. (Consider hashing later)
+    if user.password != password:
+        return jsonify({'error': 'Invalid email or password'}), 401
+
+    return jsonify({'user': user.to_dict()}), 200
 
 @app.route('/me')
 def get_profile_by_email():
