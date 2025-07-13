@@ -207,6 +207,13 @@ def get_career_paths():
         print("Error in /career-paths:", e)
         return jsonify({"error": "Failed to fetch career paths", "details": str(e)}), 500
     
+@app.route('/test-ai')
+def test_ai():
+    from utils.ai_utils import get_ai_guidance
+    quote = get_ai_guidance("Give a short motivational quote for failed students", expect_json=False)
+    return jsonify({'quote': quote})
+
+    
 @app.route('/ai-guide', methods=['POST'])
 def ai_guide_post():
     data = request.get_json()
@@ -515,7 +522,9 @@ ensure_admin_exists()
 
 # ---------- Run ----------
 if __name__ == '__main__':
-    db.connect()
+    if db.is_closed():
+        db.connect()
     db.create_tables([User], safe=True)
     seed_default_user()
     app.run(debug=True)
+
