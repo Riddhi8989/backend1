@@ -26,7 +26,8 @@ OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 
 app = Flask(__name__)
-CORS(app, resources={r"/*": {"origins": "https://frontend1-eight-liart.vercel.app"}}, supports_credentials=True)
+CORS(app, resources={r"/*": {"origins": ["http://localhost:5173", "https://frontend1.vercel.app"]}}, supports_credentials=True)
+
 
 
 # === Database Setup ===
