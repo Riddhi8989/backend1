@@ -29,15 +29,6 @@ openai.api_base = "https://openrouter.ai/api/v1"  # ✅ OpenRouter endpoint
 app = Flask(__name__)
 CORS(app, supports_credentials=True, origins=["https://frontend1-eight-liart.vercel.app"])
 
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from models.user import User
-from utils.db import db
-
-# === Flask App Init ===
-app = Flask(__name__)
-CORS(app, origins=["https://frontend1-eight-liart.vercel.app"])
-
 # === Database Setup ===
 @app.before_request
 def before_request():
