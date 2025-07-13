@@ -83,17 +83,23 @@ def login():
     email = data.get('email')
     password = data.get('password')
 
+    print("Attempting login for:", email, "with password:", password)
+
     if not email or not password:
         return jsonify({'error': 'Email and password are required'}), 400
 
     user = User.get_or_none(User.email == email)
     if not user:
+        print("User not found")
         return jsonify({'error': 'Invalid email or password'}), 401
 
-    # Use plain comparison since passwords aren't hashed
+    print("User found:", user.email, "stored password:", user.password)
+
     if user.password != password:
+        print("Password mismatch")
         return jsonify({'error': 'Invalid email or password'}), 401
 
+    print("✅ Login successful")
     return jsonify({'user': user.to_dict()}), 200
 
 @app.route('/me')
